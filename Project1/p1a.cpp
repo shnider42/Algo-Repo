@@ -14,7 +14,6 @@ using namespace std;
 
 #include "d_except.h"
 #include "d_matrix.h"
-#include "graph.h"
 #include "knapsack.h"
 
 int main()
