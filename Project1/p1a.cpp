@@ -7,6 +7,7 @@
 #include <fstream>
 #include <queue>
 #include <vector>
+#include <stack>
 #include <time.h>
 
 using namespace std;
@@ -26,10 +27,10 @@ int main()
    // Read the name of the graph from the keyboard or
    // hard code it here for testing.
    
-   // fileName = "knapsack16.input";
+   fileName = "knapsack8.input";
 
    cout << "Enter filename" << endl;
-   cin >> fileName;
+   //cin >> fileName;
    
    fin.open(fileName.c_str());
    if (!fin)
@@ -60,3 +61,7 @@ int main()
    }
 }
 
+void exhaustiveKnapsack(knapsack sack, int time)
+{
+	
+}
