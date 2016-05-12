@@ -9,6 +9,8 @@
 #include <vector>
 #include <stack>
 #include <time.h>
+#include <windows.h>
+#include <direct.h>
 
 using namespace std;
 
@@ -17,6 +19,7 @@ using namespace std;
 #include "knapsack.h"
 
 void exhaustiveKnapsack(knapsack, int);
+string getcwd1();
 string booleanString(int, int);
 void pickKnapsack(knapsack, string);
 void clearKnapsack(knapsack);
@@ -30,12 +33,21 @@ int main()
    
    // Read the name of the graph from the keyboard or
    // hard code it here for testing.
+
+   string CWD;
+   CWD = getcwd1();
+   cout << CWD;
+   cout << "\n\n";
    
-   fileName = "knapsack8.input";
+   // appending file name to load correctly
+   fileName = CWD + "\\\knapsack8.input";
+   cout << fileName;
+   cin.get();
 
    cout << "Enter filename" << endl;
    //cin >> fileName;
-   fin.open(fileName.c_str());
+   //fin.open(fileName.c_str());
+   fin.open(fileName);
    if (!fin)
    {
       cerr << "Cannot open " << fileName << endl;
@@ -55,11 +67,15 @@ int main()
    }    
    catch (indexRangeError &ex) 
    { 
-      cout << ex.what() << endl; exit(1);
+      cout << ex.what() << endl; 
+	  cin.get();
+	  exit(1);
    }
    catch (rangeError &ex)
    {
-      cout << ex.what() << endl; exit(1);
+      cout << ex.what() << endl; 
+	  cin.get();
+	  exit(1);
    }
 	
    cin.get(); // pause to read output
@@ -71,6 +87,7 @@ void exhaustiveKnapsack(knapsack sack, int timeLimit)
 	time_t startTime;
 	time(&startTime);
 
+	cin.get();
 	int currentNumber = 1;
 	int bestValue = 0;
 	int bestNumber = 0;
@@ -99,6 +116,14 @@ void exhaustiveKnapsack(knapsack sack, int timeLimit)
 	}
 	bitString = booleanString(bestNumber, sack.getNumObjects());
 	pickKnapsack(sack, bitString);
+}
+
+string getcwd1()
+{
+	char* a_cwd = _getcwd(NULL, 0);
+	string s_cwd(a_cwd);
+	free(a_cwd);
+	return s_cwd;
 }
 
 string booleanString(int number, int bits) 
