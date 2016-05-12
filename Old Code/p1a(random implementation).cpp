@@ -1,3 +1,4 @@
+
 // Project 1a: Solving knapsack using exhaustive search
 //
 
@@ -17,13 +18,10 @@ using namespace std;
 #include "knapsack.h"
 
 void exhaustiveKnapsack(knapsack, int);
-string booleanString(int, int);
-void pickKnapsack(knapsack, string);
-void clearKnapsack(knapsack);
 
 int main()
 {
-   //char x;
+   char x;
    ifstream fin;
    stack <int> moves;
    string fileName;
@@ -35,6 +33,7 @@ int main()
 
    cout << "Enter filename" << endl;
    //cin >> fileName;
+   
    fin.open(fileName.c_str());
    if (!fin)
    {
@@ -71,10 +70,7 @@ void exhaustiveKnapsack(knapsack sack, int timeLimit)
 	time_t startTime;
 	time(&startTime);
 
-	int currentNumber = 1;
-	int bestValue = 0;
-	int bestNumber = 0;
-	string bitString = "";
+
 	// a while loop that expires when time limit is complete by checking difference of 
 	// start time and current time at every loop
 	while (true)
@@ -88,45 +84,33 @@ void exhaustiveKnapsack(knapsack sack, int timeLimit)
 			break;
 		}
 
-		bitString = booleanString(currentNumber, sack.getNumObjects());
-		pickKnapsack(sack, bitString);
-		if (sack.getValue() > bestValue) {
-			bestValue = sack.getValue();
-			bestNumber = currentNumber;
-		}
-		clearKnapsack(sack);
-		currentNumber++;
-	}
-	bitString = booleanString(bestNumber, sack.getNumObjects());
-	pickKnapsack(sack, bitString);
-}
 
-string booleanString(int number, int bits) 
-{
-	string ret = "";
-	for (int i = 0; i < bits; i++) {
-		int holder = (pow(2, bits - i));
-		if (number > holder) {
-			ret += "1";
-			number -= holder;
-		}
-		else {
-			ret += "0";
-		}
-	}
-	return ret;
-}
+		// Put main code here
 
-void pickKnapsack(knapsack sack, string bits) {
-	for (int i = 0; i < bits.length(); i++) {
-		if ((bits.at(i) - '0') == 1) {
-			sack.select(i + 1);
+		// Update current weight in sack every iteration of while loop
+		int itemsSelected = 0;
+		int currentWeight = 0;
+		for (int i = 0; i < sack.getNumObjects(); i++)
+		{
+			itemsSelected++;
+			currentWeight = sack.getCost(i) + currentWeight;
 		}
-	}
-}
 
-void clearKnapsack(knapsack sack) {
-	for (int i = 1; i <= sack.getNumObjects(); i++) {
-		sack.unSelect(i);
+		// Create random index to put into sack
+		srand(time(NULL));
+		int randNum = rand() % sack.getNumObjects();
+		// if item isn't selected, and there is enough space, then select item
+		if ((sack.isSelected(randNum) == false) && sack.getCost(randNum) + currentWeight <= sack.getCostLimit())
+		{
+			sack.select(randNum);
+		}
+		// Need an exit case where there is no more items that can fit in the sack
+		else if (sack.getCost(randNum) + currentWeight > sack.getCostLimit())
+		{
+			// need to record sack weight and value and items when this happens (and there are 
+			// no more items that can legally be added)
+		}
+		
+
 	}
 }
