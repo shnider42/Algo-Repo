@@ -16,12 +16,15 @@ using namespace boost;
 
 string getcwd1();
 
+
 int const NONE = -1;  // Used to represent a node that does not exist
 
 struct VertexProperties;
 struct EdgeProperties;
 
 typedef adjacency_list<vecS, vecS, bidirectionalS, VertexProperties, EdgeProperties> Graph;
+
+int exhaustiveColoring(Graph&, int, int);
 
 struct VertexProperties
 {
@@ -30,6 +33,7 @@ struct VertexProperties
    bool visited;
    bool marked;
    int weight;
+   int color;
 };
 
 // Create a struct to hold properties for each edge
@@ -40,12 +44,14 @@ struct EdgeProperties
    bool marked;
 };
 
-void initializeGraph(Graph &g, ifstream &fin)
+int initializeGraph(Graph &g, ifstream &fin)
 // Initialize g using data from fin.  
 {
    int n, e;
    int j,k;
+   int numColors;
 
+   fin >> numColors;
    fin >> n >> e;
    Graph::vertex_descriptor v;
    
@@ -57,7 +63,10 @@ void initializeGraph(Graph &g, ifstream &fin)
    {
       fin >> j >> k;
       add_edge(j,k,g);  // Assumes vertex list is type vecS
+      add_edge(k,j,g);
    }
+   
+   return numColors;
 }
 
 void setNodeWeights(Graph &g, int w)
@@ -76,6 +85,7 @@ int main()
    char x;
    ifstream fin;
    string fileName;
+   int numColors;
    
    // Read the name of the graph from the keyboard or
    // hard code it here for testing.
@@ -86,7 +96,7 @@ int main()
    cout << "\n\n";
 
    // appending file name to load correctly
-   fileName = CWD + "\\\color24-4.input";
+   fileName = CWD + "\\\color12-3.input";
    cout << fileName;
    cin.get();
    
@@ -105,8 +115,9 @@ int main()
     {
       cout << "Reading graph" << endl;
       Graph g;
-      initializeGraph(g,fin);
+      numColors = initializeGraph(g,fin);
 
+	  cout << "Num colors: " << numColors << endl;
       cout << "Num nodes: " << num_vertices(g) << endl;
       cout << "Num edges: " << num_edges(g) << endl;
       cout << endl;
@@ -127,4 +138,12 @@ string getcwd1()
 	string s_cwd(a_cwd);
 	free(a_cwd);
 	return s_cwd;
+}
+int exhaustiveColoring(Graph& g, int numColors, int t)
+{
+	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
+	for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr){
+		
+	}
+	return 0;
 }
