@@ -18,11 +18,11 @@ using namespace std;
 #include "d_matrix.h"
 #include "knapsack.h"
 
-void exhaustiveKnapsack(knapsack, int);
+void exhaustiveKnapsack(knapsack&, int);
 string getcwd1();
-string booleanString(int, int);
-void pickKnapsack(knapsack, string);
-void clearKnapsack(knapsack);
+string binaryString(int, int);
+void pickKnapsack(knapsack&, string);
+void clearKnapsack(knapsack&);
 
 int main()
 {
@@ -81,19 +81,29 @@ int main()
    cin.get(); // pause to read output
 }
 
-void exhaustiveKnapsack(knapsack sack, int timeLimit)
+void exhaustiveKnapsack(knapsack& sack, int timeLimit)
 {
 	// Get start time to be used in while loop
 	time_t startTime;
 	time(&startTime);
 
 	cin.get();
+
+	//currentNumber is used to count through possible solutions
 	int currentNumber = 1;
+
+	//bestValue is the current best value of the solutions checked
 	int bestValue = 0;
+
+	//bestNumber represents the solution that has the best value
 	int bestNumber = 0;
+
+	//bitString is used to map a number to a backpack
 	string bitString = "";
+
 	// a while loop that expires when time limit is complete by checking difference of 
 	// start time and current time at every loop
+	//cout << sack.getCostLimit() << endl;
 	while (true)
 	{
 		// Get current time and stop when greater than input time limit
@@ -105,16 +115,29 @@ void exhaustiveKnapsack(knapsack sack, int timeLimit)
 			break;
 		}
 
-		bitString = booleanString(currentNumber, sack.getNumObjects());
+		//if all of the feasible solutions have been checked
+		if (currentNumber >= pow(2, sack.getNumObjects())) {
+			break;
+		}
+
+		bitString = binaryString(currentNumber, sack.getNumObjects());
+
+		//cout << currentNumber << "\t" << bitString << "\t";
+
 		pickKnapsack(sack, bitString);
-		if (sack.getValue() > bestValue) {
+
+		//if the newly picked knapsack is under the weight limit and has a better value, update our variables
+		if (sack.getValue() > bestValue && sack.getCost() <= sack.getCostLimit()) {
 			bestValue = sack.getValue();
 			bestNumber = currentNumber;
 		}
+
 		clearKnapsack(sack);
 		currentNumber++;
 	}
-	bitString = booleanString(bestNumber, sack.getNumObjects());
+
+	//set the knapsack to what was found as the best solution
+	bitString = binaryString(bestNumber, sack.getNumObjects());
 	pickKnapsack(sack, bitString);
 }
 
@@ -126,12 +149,14 @@ string getcwd1()
 	return s_cwd;
 }
 
-string booleanString(int number, int bits) 
+//map a number to a string of the number in binary form
+string binaryString(int number, int bits) 
 {
 	string ret = "";
 	for (int i = 0; i < bits; i++) {
-		int holder = (pow(2, bits - i));
-		if (number > holder) {
+		//get the current bit value, i.e. 2^x
+		int holder = (pow(2, bits - i - 1));
+		if (number >= holder) {
 			ret += "1";
 			number -= holder;
 		}
@@ -142,16 +167,19 @@ string booleanString(int number, int bits)
 	return ret;
 }
 
-void pickKnapsack(knapsack sack, string bits) {
+//picks which items inn the knapsack to select based on the provided string
+void pickKnapsack(knapsack& sack, string bits) {
 	for (int i = 0; i < bits.length(); i++) {
 		if ((bits.at(i) - '0') == 1) {
-			sack.select(i + 1);
+			sack.select(i);
 		}
 	}
+	//cout << sack.getValue() << "\t" << sack.getCost() << endl;
 }
 
-void clearKnapsack(knapsack sack) {
-	for (int i = 1; i <= sack.getNumObjects(); i++) {
+//unslects all items in the knapsack
+void clearKnapsack(knapsack& sack) {
+	for (int i = 0; i < sack.getNumObjects(); i++) {
 		sack.unSelect(i);
 	}
 }
