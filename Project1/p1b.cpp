@@ -4,6 +4,8 @@
 #include <limits.h>
 #include "d_except.h"
 #include <fstream>
+#include <windows.h>
+#include <direct.h>
 
 #include <boost/graph/adjacency_list.hpp>
 
@@ -11,6 +13,8 @@
 
 using namespace std;
 using namespace boost;
+
+string getcwd1();
 
 int const NONE = -1;  // Used to represent a node that does not exist
 
@@ -75,8 +79,16 @@ int main()
    
    // Read the name of the graph from the keyboard or
    // hard code it here for testing.
-   
-   fileName = "/Users/wmeleis/2560-code/tree2/tree/graph1.txt";
+
+   string CWD;
+   CWD = getcwd1();
+   cout << CWD;
+   cout << "\n\n";
+
+   // appending file name to load correctly
+   fileName = CWD + "\\\color24-4.input";
+   cout << fileName;
+   cin.get();
    
    //   cout << "Enter filename" << endl;
    //   cin >> fileName;
@@ -85,6 +97,7 @@ int main()
    if (!fin)
    {
       cerr << "Cannot open " << fileName << endl;
+	  cin.get();
       exit(1);
    }
    
@@ -100,4 +113,18 @@ int main()
       
       // cout << g;
    }
+   catch (int e)
+   {
+	   cout << "Error occured: " << e << endl;
+	   cin.get();
+   }
+   cin.get();
+}
+
+string getcwd1()
+{
+	char* a_cwd = _getcwd(NULL, 0);
+	string s_cwd(a_cwd);
+	free(a_cwd);
+	return s_cwd;
 }
