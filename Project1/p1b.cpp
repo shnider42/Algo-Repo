@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <direct.h>
 #include <time.h>
+#include <string> 
 
 #include <boost/graph/adjacency_list.hpp>
 
@@ -25,9 +26,9 @@ typedef adjacency_list<vecS, vecS, bidirectionalS, VertexProperties, EdgePropert
 
 string getcwd1();
 int exhaustiveColoring(Graph&, int, int);
-int lowestColorNumber(Graph&, Graph::vertex_iterator, int);
-int countConflicts(Graph&, int);
-void popColor (Graph&, int);
+void colorGraph(Graph&, int, int);
+string colorString(int, int, int);
+int countConflicts(Graph&);
 void printGraph(Graph&);
 bool matchingColors(Graph& g, Graph::vertex_iterator v);
 
@@ -133,7 +134,6 @@ int main()
       Graph g;
       numColors = initializeGraph(g,fin);
       setNodeColors(g, 0);
-
 	  cout << "Num colors: " << numColors << endl;
       cout << "Num nodes: " << num_vertices(g) << endl;
       cout << "Num edges: " << num_edges(g) << endl;
@@ -161,8 +161,9 @@ string getcwd1()
 int exhaustiveColoring(Graph& g, int numColors, int t)
 //brute force search of the minimum amount of color conflicts
 {
+	int colorNumber = 0;
 	int bestConflicts = num_vertices(g);
-	Graph bestGraph;
+	Graph bestGraph = g;
 	// Get start time to be used in while loop
 	time_t startTime;
 	time(&startTime);
@@ -175,52 +176,30 @@ int exhaustiveColoring(Graph& g, int numColors, int t)
 			cout << "Time limit expired" << endl;;
 			break;
 		}
-		pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
-		for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr){
-			if (0 == g[*vItr].color)
-			{
-				g[*vItr].color = lowestColorNumber(g, vItr, numColors);
-			}
-		}
-		if (countConflicts(g, numColors) < bestConflicts)
+		
+		if (colorNumber == pow(4, num_vertices(g)))
 		{
-			bestConflicts = countConflicts(g, numColors);
+			break;
+		}
+		
+		colorGraph(g, colorNumber, numColors);
+		
+		if (countConflicts(g) < bestConflicts)
+		{
+			bestConflicts = countConflicts(g);
 			if (0 == bestConflicts)
 			{
 				break;
 			}
 			bestGraph = g;
 		}
-		popColor(g, numColors);
+		colorNumber++;
 	}
 	g = bestGraph;
 	return bestConflicts;
 }
 
-int lowestColorNumber(Graph& g, Graph::vertex_iterator v, int numColors)
-{
-	int color = 1;
-	bool colorFound = false;
-	pair<Graph::adjacency_iterator, Graph::adjacency_iterator> vItrRange = adjacent_vertices(*v, g);
-	while (color <= numColors && !colorFound)
-	{
-		for (Graph::adjacency_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
-		{
-			if(color == g[*vItr].color)
-			{
-				color++;
-				break;
-			}
-			if (vItr == vItrRange.second - 1) {
-				colorFound = true;
-			}
-		}
-	}
-	
-	return color;
-}
-
-int countConflicts(Graph& g, int numColors)
+int countConflicts(Graph& g)
 {
 	int numConflicts = 0;
 	
@@ -228,7 +207,7 @@ int countConflicts(Graph& g, int numColors)
    
     for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
     {
-        if (0 == g[*vItr].color || numColors < g[*vItr].color || matchingColors(g, vItr))
+        if (0 == g[*vItr].color || matchingColors(g, vItr))
         {
         	numConflicts++;
 		}
@@ -251,21 +230,6 @@ bool matchingColors(Graph& g, Graph::vertex_iterator v)
 	
 }
 
-void popColor(Graph& g, int numColors)
-{
-	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
-	
-	for (Graph::vertex_iterator vItr= vItrRange.second - 1; vItr >= vItrRange.first; ++vItr)
-    {
-    	if (0 != g[*vItr].color && numColors > g[*vItr].color) {
-    		g[*vItr].color += 1;
-    		break;
-		}
-		else {
-			g[*vItr].color = 0;
-		}
-    }
-}
 
 void printGraph(Graph& g) {
 	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
@@ -274,4 +238,32 @@ void printGraph(Graph& g) {
     {
         cout << *vItr << "\t" << g[*vItr].color << endl;
     }
+}
+
+void colorGraph(Graph& g, int colorNumber, int numColors)
+{
+	string pickedGraph = colorString(num_vertices(g), colorNumber, numColors);
+	cout <<colorNumber<<"     "<< pickedGraph<<endl;;
+	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
+	int i = 0;
+   
+    for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
+    {
+        g[*vItr].color = (pickedGraph.at(i) - '0') + 1;
+        cout<<g[*vItr].color;
+    }
+    cout<<endl<<endl<<endl;
+}
+
+string colorString(int numVertices, int colorNumber, int numColors)
+{
+	string ret = "";
+	for (int i = 0; i < numVertices; i++) {
+		ostringstream convert;
+		int holder = (pow(numColors, numVertices - i - 1));
+		convert << colorNumber / holder;
+		ret += convert.str();
+		colorNumber -= (colorNumber / holder) * holder;
+	}
+	return ret;
 }
