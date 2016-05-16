@@ -21,14 +21,15 @@ using namespace std;
 
 void exhaustiveKnapsack(knapsack&, int);
 string getcwd1();
-string binaryString(int, int);
-void pickKnapsack(knapsack&, string);
+void pickKnapsack(knapsack&, vector<bool>);
 void clearKnapsack(knapsack&);
+vector<bool> incrementSack(vector<bool>, int);
+bool allTrue(vector<bool>);
 
+//uses an outside ofstream variable to output the best knapsack solution, rather than using cout
 void outputSolutionToFile(ofstream& fout, knapsack k) 
 {
-   fout << "------------------------------------------------" << endl;
-
+   fout << "Best Solution: " << endl;
    fout << "Total value: " << k.getValue() << endl;
    fout << "Total cost: " << k.getCost() << endl << endl;
 
@@ -106,33 +107,41 @@ int main()
 }
 
 //brute force search of the best-valued backpack that remains under the weight limit
-//note that third parameter is max search time in seconds
+//note that second parameter is max search time in seconds
 void exhaustiveKnapsack(knapsack& sack, int timeLimit)
 {
 	// Get start time to be used in while loop
 	time_t startTime;
 	time(&startTime);
 
-	//currentNumber is used to count through possible solutions
-	int currentNumber = 1;
-
 	//bestValue is the current best value of the solutions checked
+	//initialize it to 0
 	int bestValue = 0;
-
-	//bestNumber represents the solution that has the best value
-	int bestNumber = 0;
-
-	//bitString is used to map a number to a backpack
-	string bitString = "";
+	
+	//this vector represents the code for picking items for a solution - each boolean maps to a possible item
+	//true means an item will be picked, false is not picked
+	vector<bool> currentNumber;
+	for (int i = 0; i < sack.getNumObjects(); i++) {
+		currentNumber.push_back(false);
+	}
+	
+	//boolean that decides when to stop the while loop
+	//will be set to true when we are on the last feasible solution
+	bool done = false;
+	
+	//store the bestNumber so we can re-map the knapsack at the end for printing
+	//initialize it to the first number
+	vector<bool> bestNumber = currentNumber;
 
 	// a while loop that expires when time limit is complete by checking difference of 
 	// start time and current time at every loop
-	//cout << sack.getCostLimit() << endl;
-	while (true)
+	while (!done)
 	{
 		// Get current time and stop when greater than input time limit
 		time_t newTime;
 		time(&newTime);
+		
+		//if the time threshold has been reached
 		if (difftime(newTime, startTime) > timeLimit)
 		{
 			cout << "Time limit expired";
@@ -140,13 +149,11 @@ void exhaustiveKnapsack(knapsack& sack, int timeLimit)
 		}
 
 		//if all of the feasible solutions have been checked
-		if (currentNumber >= pow(2, sack.getNumObjects())) {
-			break;
+		if (allTrue(currentNumber)) {
+			done = true;
 		}
 
-		bitString = binaryString(currentNumber, sack.getNumObjects());
-
-		pickKnapsack(sack, bitString);
+		pickKnapsack(sack, currentNumber);
 
 		//if the newly picked knapsack is under the weight limit and has a better value, update our variables
 		if (sack.getValue() > bestValue && sack.getCost() <= sack.getCostLimit()) {
@@ -154,13 +161,15 @@ void exhaustiveKnapsack(knapsack& sack, int timeLimit)
 			bestNumber = currentNumber;
 		}
 
+		//unselect everything from the knapsack
 		clearKnapsack(sack);
-		currentNumber++;
+		
+		//increment our code to the next code
+		currentNumber = incrementSack(currentNumber, currentNumber.size() - 1);
 	}
 
 	//set the knapsack to what was found as the best solution
-	bitString = binaryString(bestNumber, sack.getNumObjects());
-	pickKnapsack(sack, bitString);
+	pickKnapsack(sack, bestNumber);
 }
 
 //get the current working directory to allow for smoother filename finding
@@ -172,32 +181,31 @@ string getcwd1()
 	return s_cwd;
 }
 
-//map a number to a string of the number in binary form
-string binaryString(int number, int bits) 
-{
-	string ret = "";
-	for (int i = 0; i < bits; i++) {
-		//get the current bit value, i.e. 2^x
-		int holder = (pow(2, bits - i - 1));
-		if (number >= holder) {
-			ret += "1";
-			number -= holder;
-		}
-		else {
-			ret += "0";
-		}
-	}
-	return ret;
-}
-
-//picks which items inn the knapsack to select based on the provided string
-void pickKnapsack(knapsack& sack, string bits) {
-	for (int i = 0; i < bits.length(); i++) {
-		if ((bits.at(i) - '0') == 1) {
+//picks which items inn the knapsack to select based on the provided code
+//each item corresponds to an index in the vector - true will pick the item, false will not
+void pickKnapsack(knapsack& sack, vector<bool> bits) {
+	for (int i = 0; i < bits.size(); i++) {
+		if (bits.at(i)) {
 			sack.select(i);
 		}
 	}
 	//cout << sack.getValue() << "\t" << sack.getCost() << endl;
+}
+
+//increments the current code to the next code
+//works like adding 1 to a binary number
+vector<bool> incrementSack(vector<bool> currentNumber, int index) {
+	
+	//same as adding one to a binary number
+	currentNumber.at(index) = !currentNumber.at(index);
+	
+	//if we went from true to false (1 to 0), we need to flip the previous index
+	//the same as if we carry a 1 to the next bit in binary addition
+	if (!currentNumber.at(index) && index > 0)
+	{
+		currentNumber = incrementSack(currentNumber, index - 1);
+	}
+	return currentNumber;
 }
 
 //unslects all items in the knapsack
@@ -205,4 +213,15 @@ void clearKnapsack(knapsack& sack) {
 	for (int i = 0; i < sack.getNumObjects(); i++) {
 		sack.unSelect(i);
 	}
+}
+
+//checks if all the items in the vector parameter are true
+//used in checking if all feasible solutions have been checkeds
+bool allTrue(vector<bool> currentNumber) {
+	for (int i = 0; i < currentNumber.size(); i++) {
+		if (!currentNumber.at(i)) {
+			return false;
+		}
+	}
+	return true;
 }
