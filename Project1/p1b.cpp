@@ -29,6 +29,7 @@ int lowestColorNumber(Graph&, Graph::vertex_iterator, int);
 int countConflicts(Graph&, int);
 void popColor (Graph&, int);
 void printGraph(Graph&);
+bool matchingColors(Graph& g, Graph::vertex_iterator v);
 
 struct VertexProperties
 {
@@ -137,8 +138,8 @@ int main()
       cout << "Num nodes: " << num_vertices(g) << endl;
       cout << "Num edges: " << num_edges(g) << endl;
       cout << endl;
-      numConflicts = exhaustiveColoring(g, numColors, 60);
-      cout << numConflicts << endl; 
+      numConflicts = exhaustiveColoring(g, numColors, 6);
+      cout << "best solution had " << numConflicts << " conflicts." << endl; 
       printGraph(g);
       // cout << g;
    }
@@ -158,6 +159,7 @@ string getcwd1()
 }
 
 int exhaustiveColoring(Graph& g, int numColors, int t)
+//brute force search of the minimum amount of color conflicts
 {
 	int bestConflicts = num_vertices(g);
 	Graph bestGraph;
@@ -183,6 +185,10 @@ int exhaustiveColoring(Graph& g, int numColors, int t)
 		if (countConflicts(g, numColors) < bestConflicts)
 		{
 			bestConflicts = countConflicts(g, numColors);
+			if (0 == bestConflicts)
+			{
+				break;
+			}
 			bestGraph = g;
 		}
 		popColor(g, numColors);
@@ -222,13 +228,27 @@ int countConflicts(Graph& g, int numColors)
    
     for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
     {
-        if (0 == g[*vItr].color || numColors < g[*vItr].color)
+        if (0 == g[*vItr].color || numColors < g[*vItr].color || matchingColors(g, vItr))
         {
         	numConflicts++;
 		}
     }
     
     return numConflicts;
+}
+
+bool matchingColors(Graph& g, Graph::vertex_iterator v)
+{
+	pair<Graph::adjacency_iterator, Graph::adjacency_iterator> vItrRange = adjacent_vertices(*v, g);
+	for (Graph::adjacency_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
+	{
+		if(g[*v].color == g[*vItr].color)
+		{
+			return true;
+		}
+	}
+	return false;
+	
 }
 
 void popColor(Graph& g, int numColors)
@@ -240,6 +260,9 @@ void popColor(Graph& g, int numColors)
     	if (0 != g[*vItr].color && numColors > g[*vItr].color) {
     		g[*vItr].color += 1;
     		break;
+		}
+		else {
+			g[*vItr].color = 0;
 		}
     }
 }
