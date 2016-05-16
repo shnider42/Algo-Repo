@@ -29,7 +29,6 @@ int exhaustiveColoring(Graph&, int, int);
 void colorGraph(Graph&, int, int);
 string colorString(int, int, int);
 int countConflicts(Graph&);
-void printGraph(Graph&);
 bool matchingColors(Graph& g, Graph::vertex_iterator v);
 
 //Create a struct to hold the properties of each vertex
@@ -60,11 +59,10 @@ int initializeGraph(Graph &g, ifstream &fin)
 
    fin >> numColors;
    fin >> n >> e;
-   Graph::vertex_descriptor v;
    
    // Add nodes.
    for (int i = 0; i < n; i++)
-      v = add_vertex(g);
+      add_vertex(g);
    
    for (int i = 0; i < e; i++)
    {
@@ -98,11 +96,24 @@ void setNodeColors(Graph &g, int w)
    }
 }
 
+ostream &operator<<(ostream &ostr, const Graph &g)
+// Output operator for the Graph class. Prints out all nodes and their colors
+{
+	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
+   
+    for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
+    {
+        ostr << *vItr << "\t" << g[*vItr].color << endl;
+    }
+    return ostr;
+}
+
 int main()
 {
    char x;
    ifstream fin;
    string fileName;
+   ofstream outputFile;
    int numColors, numConflicts;
    
    // Read the name of the graph from the keyboard or
@@ -131,6 +142,8 @@ int main()
    
    try
     {
+      string outFile = fileName.substr(0, fileName.length() - 5) + "output";
+   	  outputFile.open(outFile.c_str());
       cout << "Reading graph" << endl;
       Graph g;
       numColors = initializeGraph(g,fin);
@@ -142,9 +155,10 @@ int main()
       
       //get the fewest number of conflicts in the time allowed
       //note that third parameter is time to search in seconds
-      numConflicts = exhaustiveColoring(g, numColors, 600);
-      cout << "best solution had " << numConflicts << " conflicts." << endl; 
-      printGraph(g);
+      numConflicts = exhaustiveColoring(g, numColors, 6);
+      outputFile << "best solution had " << numConflicts << " conflicts." << endl; 
+      outputFile << g << endl;
+      outputFile.close();
       // cout << g;
    }
    catch (int e)
@@ -242,16 +256,6 @@ bool matchingColors(Graph& g, Graph::vertex_iterator v)
 	
 }
 
-//prints the graph - prints each vertex and its color
-void printGraph(Graph& g) {
-	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
-   
-    for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
-    {
-        cout << *vItr << "\t" << g[*vItr].color << endl;
-    }
-}
-
 //colors the graph - the second parameter is the "code" for how to color the graph
 void colorGraph(Graph& g, int colorNumber, int numColors)
 {
@@ -263,7 +267,6 @@ void colorGraph(Graph& g, int colorNumber, int numColors)
     {
         g[*vItr].color = (pickedGraph.at(i) - '0') + 1;
         i++;
-        
     }
 }
 

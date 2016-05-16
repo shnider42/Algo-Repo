@@ -25,12 +25,31 @@ string binaryString(int, int);
 void pickKnapsack(knapsack&, string);
 void clearKnapsack(knapsack&);
 
+void outputSolutionToFile(ofstream& fout, knapsack k) 
+{
+   fout << "------------------------------------------------" << endl;
+
+   fout << "Total value: " << k.getValue() << endl;
+   fout << "Total cost: " << k.getCost() << endl << endl;
+
+   // Print out objects in the solution
+   for (int i = 0; i < k.getNumObjects(); i++)
+      if (k.isSelected(i))
+	 fout << i << "  " << k.getValue(i) << " " << k.getCost(i) << endl;
+
+   fout << endl;
+}
+
+
+
 int main()
 {
    //char x;
    ifstream fin;
    stack <int> moves;
    string fileName;
+   ofstream outputFile;
+   
    
    // Read the name of the graph from the keyboard or
    // hard code it here for testing.
@@ -58,14 +77,17 @@ int main()
 
    try
    {
+   	  string outFile = fileName.substr(0, fileName.length() - 5) + "output";
+   	  outputFile.open(outFile.c_str());
       cout << "Reading knapsack instance" << endl;
       knapsack k(fin);
 
       exhaustiveKnapsack(k, 600);
-
 	  cout << "Weight limit was: " << k.getCostLimit() << endl;
       cout << endl << "Best solution" << endl;
       k.printSolution();
+      outputSolutionToFile(outputFile, k);
+      outputFile.close();
    }    
    catch (indexRangeError &ex) 
    { 
