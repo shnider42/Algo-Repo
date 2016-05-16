@@ -11,6 +11,7 @@
 #include <time.h>
 #include <windows.h>
 #include <direct.h>
+#include <math.h>
 
 using namespace std;
 
@@ -34,20 +35,20 @@ int main()
    // Read the name of the graph from the keyboard or
    // hard code it here for testing.
 
-   string CWD;
+   /*string CWD;
    CWD = getcwd1();
    cout << CWD;
    cout << "\n\n";
    
    // appending file name to load correctly
-   fileName = CWD + "\\\knapsack8.input";
+   fileName = CWD + "\\\knapsack32.input";
    cout << fileName;
-   cin.get();
+   cin.get();*/
 
    cout << "Enter filename" << endl;
-   //cin >> fileName;
-   //fin.open(fileName.c_str());
-   fin.open(fileName);
+   cin >> fileName;
+   fin.open(fileName.c_str());
+   //fin.open(fileName);
    if (!fin)
    {
       cerr << "Cannot open " << fileName << endl;
@@ -60,8 +61,9 @@ int main()
       cout << "Reading knapsack instance" << endl;
       knapsack k(fin);
 
-      exhaustiveKnapsack(k, 6);
+      exhaustiveKnapsack(k, 600);
 
+	  cout << "Weight limit was: " << k.getCostLimit() << endl;
       cout << endl << "Best solution" << endl;
       k.printSolution();
    }    
@@ -81,13 +83,13 @@ int main()
    cin.get(); // pause to read output
 }
 
+//brute force search of the best-valued backpack that remains under the weight limit
+//note that third parameter is max search time in seconds
 void exhaustiveKnapsack(knapsack& sack, int timeLimit)
 {
 	// Get start time to be used in while loop
 	time_t startTime;
 	time(&startTime);
-
-	cin.get();
 
 	//currentNumber is used to count through possible solutions
 	int currentNumber = 1;
@@ -122,8 +124,6 @@ void exhaustiveKnapsack(knapsack& sack, int timeLimit)
 
 		bitString = binaryString(currentNumber, sack.getNumObjects());
 
-		//cout << currentNumber << "\t" << bitString << "\t";
-
 		pickKnapsack(sack, bitString);
 
 		//if the newly picked knapsack is under the weight limit and has a better value, update our variables
@@ -141,6 +141,7 @@ void exhaustiveKnapsack(knapsack& sack, int timeLimit)
 	pickKnapsack(sack, bitString);
 }
 
+//get the current working directory to allow for smoother filename finding
 string getcwd1()
 {
 	char* a_cwd = _getcwd(NULL, 0);

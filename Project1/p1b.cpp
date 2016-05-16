@@ -32,6 +32,7 @@ int countConflicts(Graph&);
 void printGraph(Graph&);
 bool matchingColors(Graph& g, Graph::vertex_iterator v);
 
+//Create a struct to hold the properties of each vertex
 struct VertexProperties
 {
    pair<int,int> cell; // maze cell (x,y) value
@@ -107,18 +108,18 @@ int main()
    // Read the name of the graph from the keyboard or
    // hard code it here for testing.
 
-   string CWD;
+   /*string CWD;
    CWD = getcwd1();
    cout << CWD;
    cout << "\n\n";
 
    // appending file name to load correctly
-   fileName = CWD + "\\\color12-3.input";
+   fileName = CWD + "\\\color12-4.input";
    cout << fileName;
-   cin.get();
+   cin.get();*/
    
-   //   cout << "Enter filename" << endl;
-   //   cin >> fileName;
+    cout << "Enter filename" << endl;
+    cin >> fileName;
    
    fin.open(fileName.c_str());
    if (!fin)
@@ -138,7 +139,10 @@ int main()
       cout << "Num nodes: " << num_vertices(g) << endl;
       cout << "Num edges: " << num_edges(g) << endl;
       cout << endl;
-      numConflicts = exhaustiveColoring(g, numColors, 6);
+      
+      //get the fewest number of conflicts in the time allowed
+      //note that third parameter is time to search in seconds
+      numConflicts = exhaustiveColoring(g, numColors, 600);
       cout << "best solution had " << numConflicts << " conflicts." << endl; 
       printGraph(g);
       // cout << g;
@@ -150,6 +154,7 @@ int main()
    }
 }
 
+//get the current working directory to allow for smoother filename finding
 string getcwd1()
 {
 	char* a_cwd = _getcwd(NULL, 0);
@@ -161,7 +166,10 @@ string getcwd1()
 int exhaustiveColoring(Graph& g, int numColors, int t)
 //brute force search of the minimum amount of color conflicts
 {
+	//encoded number for coloring a graph
 	int colorNumber = 0;
+	
+	//initialize the best number of conflicts to max and best graph to the initial, non-colored graph
 	int bestConflicts = num_vertices(g);
 	Graph bestGraph = g;
 	// Get start time to be used in while loop
@@ -177,7 +185,7 @@ int exhaustiveColoring(Graph& g, int numColors, int t)
 			break;
 		}
 		
-		if (colorNumber == pow(4, num_vertices(g)))
+		if (colorNumber == pow(numColors, num_vertices(g)))
 		{
 			break;
 		}
@@ -193,12 +201,14 @@ int exhaustiveColoring(Graph& g, int numColors, int t)
 			}
 			bestGraph = g;
 		}
+		//get the next encoded number
 		colorNumber++;
 	}
 	g = bestGraph;
 	return bestConflicts;
 }
 
+//count the number of conflicts in the graph
 int countConflicts(Graph& g)
 {
 	int numConflicts = 0;
@@ -207,6 +217,7 @@ int countConflicts(Graph& g)
    
     for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
     {
+    	//a conflict occurs if a graph has a color of 0 or has the same color as a neighbor
         if (0 == g[*vItr].color || matchingColors(g, vItr))
         {
         	numConflicts++;
@@ -216,6 +227,7 @@ int countConflicts(Graph& g)
     return numConflicts;
 }
 
+//checks if a vertex has the same color as any of its neighbors
 bool matchingColors(Graph& g, Graph::vertex_iterator v)
 {
 	pair<Graph::adjacency_iterator, Graph::adjacency_iterator> vItrRange = adjacent_vertices(*v, g);
@@ -230,7 +242,7 @@ bool matchingColors(Graph& g, Graph::vertex_iterator v)
 	
 }
 
-
+//prints the graph - prints each vertex and its color
 void printGraph(Graph& g) {
 	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
    
@@ -240,6 +252,7 @@ void printGraph(Graph& g) {
     }
 }
 
+//colors the graph - the second parameter is the "code" for how to color the graph
 void colorGraph(Graph& g, int colorNumber, int numColors)
 {
 	string pickedGraph = colorString(num_vertices(g), colorNumber, numColors);
@@ -254,12 +267,14 @@ void colorGraph(Graph& g, int colorNumber, int numColors)
     }
 }
 
+//decodes the colorNumber to a string as a helper function for coloring a graph
 string colorString(int numVertices, int colorNumber, int numColors)
 {
 	string ret = "";
 	for (int i = 0; i < numVertices; i++) {
 		ostringstream convert;
 		int holder = (pow(numColors, numVertices - i - 1));
+		//note that convert will be any number from 0 to (numColors - 1)
 		convert << colorNumber / holder;
 		ret += convert.str();
 		colorNumber -= (colorNumber / holder) * holder;
