@@ -243,16 +243,15 @@ void printGraph(Graph& g) {
 void colorGraph(Graph& g, int colorNumber, int numColors)
 {
 	string pickedGraph = colorString(num_vertices(g), colorNumber, numColors);
-	cout <<colorNumber<<"     "<< pickedGraph<<endl;;
 	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
 	int i = 0;
    
     for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
     {
         g[*vItr].color = (pickedGraph.at(i) - '0') + 1;
-        cout<<g[*vItr].color;
+        i++;
+        
     }
-    cout<<endl<<endl<<endl;
 }
 
 string colorString(int numVertices, int colorNumber, int numColors)
