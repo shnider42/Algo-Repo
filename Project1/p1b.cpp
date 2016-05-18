@@ -1,3 +1,4 @@
+//Project 1b: using exhaustive search to color a graph.
 // Code to read graph instances from a file.  Uses the Boost Graph Library (BGL).
 
 #include <iostream>
@@ -8,6 +9,7 @@
 #include <direct.h>
 #include <time.h>
 #include <string> 
+#include <math.h>
 
 #include <boost/graph/adjacency_list.hpp>
 
@@ -26,9 +28,9 @@ typedef adjacency_list<vecS, vecS, bidirectionalS, VertexProperties, EdgePropert
 
 string getcwd1();
 int exhaustiveColoring(Graph&, int, int);
-void colorGraph(Graph&, int, int);
-string colorString(int, int, int);
+void colorGraph(Graph&, vector<int>, int);
 int countConflicts(Graph&);
+vector<int> incrementColorNumber(vector<int>, int, int);
 bool matchingColors(Graph& g, Graph::vertex_iterator v);
 
 //Create a struct to hold the properties of each vertex
@@ -155,16 +157,23 @@ int main()
       
       //get the fewest number of conflicts in the time allowed
       //note that third parameter is time to search in seconds
-      numConflicts = exhaustiveColoring(g, numColors, 6);
+      numConflicts = exhaustiveColoring(g, numColors, 600);
       outputFile << "best solution had " << numConflicts << " conflicts." << endl; 
       outputFile << g << endl;
       outputFile.close();
       // cout << g;
    }
-   catch (int e)
+   catch (indexRangeError &ex) 
+   { 
+      cout << ex.what() << endl; 
+	  cin.get();
+	  exit(1);
+   }
+   catch (rangeError &ex)
    {
-	   cout << "Error occured: " << e << endl;
-	   cin.get();
+      cout << ex.what() << endl; 
+	  cin.get();
+	  exit(1);
    }
 }
 
@@ -180,49 +189,71 @@ string getcwd1()
 int exhaustiveColoring(Graph& g, int numColors, int t)
 //brute force search of the minimum amount of color conflicts
 {
-	//encoded number for coloring a graph
-	int colorNumber = 0;
+	//code for coloring a graph
+	vector<int> colorNumber;
+	for (int i = 0; i < num_vertices(g); i++) {
+		colorNumber.push_back(0);
+	}
+	// the final number is when all nodes are colored the "highest" colornumber
+	//i.e. if we have 3 colors, the final vector will be made of all 2's
+	vector<int> finalNumber;
+	for (int i = 0; i < num_vertices(g); i++) {
+		finalNumber.push_back(numColors - 1);
+	}
+	
+	//this boolean will track when we have exhausted all possibilities of colorings
+	//when false, there are more colorings to check
+	bool done = false;
 	
 	//initialize the best number of conflicts to max and best graph to the initial, non-colored graph
 	int bestConflicts = num_vertices(g);
 	Graph bestGraph = g;
+	
 	// Get start time to be used in while loop
 	time_t startTime;
 	time(&startTime);
 	
-	while (true) {
+	while (!done) {
 		time_t newTime;
 		time(&newTime);
+		
+		//if we have reached the tim threshold
 		if (difftime(newTime, startTime) > t)
 		{
 			cout << "Time limit expired" << endl;;
 			break;
 		}
 		
-		if (colorNumber == pow(numColors, num_vertices(g)))
+		//if we have reached the last coloring, execute one more time, then stop
+		if (colorNumber == finalNumber || 0 == bestConflicts)
 		{
-			break;
+			done = true;
 		}
 		
 		colorGraph(g, colorNumber, numColors);
 		
+		//if we have a better solution
 		if (countConflicts(g) < bestConflicts)
 		{
 			bestConflicts = countConflicts(g);
+			bestGraph = g;
+						
+			//if we have reached the best possible solution of any graph, stop now
 			if (0 == bestConflicts)
 			{
 				break;
 			}
-			bestGraph = g;
 		}
-		//get the next encoded number
-		colorNumber++;
+		
+		//get the next coloring code
+		colorNumber = incrementColorNumber(colorNumber, colorNumber.size() - 1, numColors);
 	}
 	g = bestGraph;
 	return bestConflicts;
 }
 
 //count the number of conflicts in the graph
+//conflicts are found by a node having a color of 0 or if any pairs of nodes that are neighbors have the same color
 int countConflicts(Graph& g)
 {
 	int numConflicts = 0;
@@ -252,35 +283,36 @@ bool matchingColors(Graph& g, Graph::vertex_iterator v)
 			return true;
 		}
 	}
+	
+	//we have looped through all of the neighbors, so none have the same color
 	return false;
 	
 }
 
 //colors the graph - the second parameter is the "code" for how to color the graph
-void colorGraph(Graph& g, int colorNumber, int numColors)
+//the code is a vector of ints, where the int represents the color - 1
+//i.e., if the code for 3 vertices is 201, then they will be colored 3, 1, and 2 respectively 
+void colorGraph(Graph& g, vector<int> colorNumber, int numColors)
 {
-	string pickedGraph = colorString(num_vertices(g), colorNumber, numColors);
 	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
 	int i = 0;
    
     for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
     {
-        g[*vItr].color = (pickedGraph.at(i) - '0') + 1;
+        g[*vItr].color = colorNumber.at(i) + 1;
         i++;
     }
 }
 
-//decodes the colorNumber to a string as a helper function for coloring a graph
-string colorString(int numVertices, int colorNumber, int numColors)
+//this increments the color code
+//i.e. 000 becomes 001, assuming 3 colors 202 becomes 210, etc
+vector<int> incrementColorNumber(vector<int> colorNumber, int index, int numColors) 
 {
-	string ret = "";
-	for (int i = 0; i < numVertices; i++) {
-		ostringstream convert;
-		int holder = (pow(numColors, numVertices - i - 1));
-		//note that convert will be any number from 0 to (numColors - 1)
-		convert << colorNumber / holder;
-		ret += convert.str();
-		colorNumber -= (colorNumber / holder) * holder;
+	colorNumber.at(index) += 1;
+	if (colorNumber.at(index) >= numColors && index > 0)
+	{
+		colorNumber.at(index) = 0;
+		colorNumber = incrementColorNumber(colorNumber, index - 1, numColors);
 	}
-	return ret;
+	return colorNumber;
 }
