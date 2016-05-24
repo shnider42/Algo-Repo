@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <direct.h>
 #include <time.h>
+#include <algorithm>
 
 #include <boost/graph/adjacency_list.hpp>
 
@@ -107,41 +108,15 @@ int lowestColorNumber(Graph& g, Graph::vertex_descriptor v, int numColors)
 			}
 			if (vItr == vItrRange.second - 1) {
 				colorFound = true;
+				break;
 			}
 		}
 	}
+	if (color > numColors) {
+		color = numColors;
+	}
 	
 	return color;
-}
-
-//count the number of conflicts in the graph
-//conflicts are found by a node having a color of 0 or if any pairs of nodes that are neighbors have the same color
-int countConflicts(Graph& g)
-{
-	//if  node is not colored, count a conflict
-	//note that we never have a negative color or a color higher than the number of colors due to our design
-	int numConflicts = 0;
-	
-	// track if neighbors have the same color
-	//note that this will count 2 conflicts for each pair, so we divide by 2 at the end
-	int neighborConflicts = 0;
-	
-	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
-   
-    for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
-    {
-    	//a conflict occurs if a graph has a color of 0 or has the same color as a neighbor
-        if (0 == g[*vItr].color)
-        {
-        	numConflicts++;
-		}
-		
-		if(matchingColors(g, vItr)) {
-			neighborConflicts++;
-		}
-    }
-    
-    return numConflicts + (neighborConflicts / 2);
 }
 
 //checks if a vertex has the same color as any of its neighbors
@@ -159,6 +134,28 @@ bool matchingColors(Graph& g, Graph::vertex_iterator v)
 	//we have looped through all of the neighbors, so none have the same color
 	return false;
 	
+}
+
+//count the number of conflicts in the graph
+//conflicts are found by a node having a color of 0 or if any pairs of nodes that are neighbors have the same color
+int countConflicts(Graph& g, int numColors)
+{
+	
+	// track if neighbors have the same color
+	//note that this will count 2 conflicts for each pair, so we divide by 2 at the end
+	int neighborConflicts = 0;
+	
+	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g);
+   
+    for (Graph::vertex_iterator vItr= vItrRange.first; vItr != vItrRange.second; ++vItr)
+    {
+		
+		if(matchingColors(g, vItr)) {
+			neighborConflicts++;
+		}
+    }
+    
+    return neighborConflicts / 2;
 }
 
 ostream &operator<<(ostream &ostr, const Graph &g)
@@ -208,7 +205,6 @@ int greedyColoring(Graph& g, int numColors)
 	vector< pair<int, Graph::vertex_descriptor> > neighbors = countNeighbors(g);
 	for (int i = 0; i < neighbors.size(); i++) {
 		g[neighbors[i].second].color = lowestColorNumber(g, neighbors[i].second, numColors);
-		cout<<neighbors[i].second<<"\t"<<g[neighbors[i].second].color<<endl;
 	}
 	return countConflicts(g, numColors);
 }
