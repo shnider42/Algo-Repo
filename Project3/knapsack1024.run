@@ -1,5 +1,6 @@
 
 model knapsack.mod;
 data knapsack1024.dat;
-option solver "/COEnet/Linux/ampl/cplex";option cplex_options 'time=600';solve;
+option solver "/COEnet/Linux/ampl/cplex";
+option cplex_options 'time=600';solve;
 display x;
