@@ -1,0 +1,10 @@
+param numNodes;
+param numColors;
+set edgeList dimen 2;
+param adjacencyMatrix {i in 0..numNodes-1, j in 0..numNodes-1} := (if (i,j) in edgeList or (j,i) in edgeList then 1 else 0);
+var color {i in 0..numNodes-1, c in 0..numColors-1} binary;
+var conflict {i in 0..numNodes-1, j in 0..numNodes-1} binary;
+minimize objective: sum {i in 0..numNodes-1, j in 0..numNodes-1} conflict[i,j];
+subject to c1 {i in 0..numNodes-1}: sum {j in 0..numColors-1} color[i,j]<=1;
+			c2 {i in 0..numNodes-1}: sum {j in 0..numColors-1} color[i,j]>=1;
+			c3 {i in 0..numNodes-1, j in 0..numNodes-1, c in 0..numColors-1}: -conflict[i,j] + adjacencyMatrix[i,j]*(color[i,c] + color[j,c]) <= 1;

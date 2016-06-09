@@ -1,0 +1,6 @@
+model color.mod;
+data color192-6.dat;
+option solver "/COEnet/Linux/ampl/cplex";
+option cplex_options 'time=600';
+solve;
+display color;
