@@ -36,14 +36,15 @@ void outputSolutionToFile(ofstream& fout, knapsack k)
    fout << endl;
 }
 
-void branchAndBound(knapsack k, int timeLimit) 
+void branchAndBound(knapsack& k, int timeLimit) 
 {
 	// Get start time to be used in while loop
 	time_t startTime;
 	time(&startTime);
 	
 	deque<knapsack> subproblems;
-	subproblems.push_back(k);
+	
+	subproblems.push_front(k);
 	knapsack bestSolution = k;
 
 	// a while loop that expires when time limit is complete by checking difference of 
@@ -53,32 +54,40 @@ void branchAndBound(knapsack k, int timeLimit)
 		// Get current time and stop when greater than input time limit
 		time_t newTime;
 		time(&newTime);
-		knapsack currentProblem, subproblem1, subproblem2;
 		//if the time threshold has been reached
 		if (difftime(newTime, startTime) > timeLimit)
 		{
 			cout << "Time limit expired" << endl;
 			break;
 		}
-		currentProblem = subproblems[0];
+		knapsack currentProblem = subproblems.front();
 		subproblems.pop_front();
 		pair<double, bool> currentBound, sub1Bound, sub2Bound, bestBound;
 		currentBound = currentProblem.bound();
 		bestBound = bestSolution.bound();
 		
 		//check if the current problem is fathomed
-		if(currentProblem.getCost() < currentProblem.getCostLimit() && ((bestBound.second && currentBound.first > bestBound.first) || !bestBound.second)) {
-			subproblem1 = currentProblem;
-			subProblem2 = currentProblem;
-			subProblem1.select(subproblem1.getNum());
-			subProblem1.incrementNum();
+		if(currentProblem.getCost() < currentProblem.getCostLimit() && ((bestBound.second && currentBound.first > bestBound.first) || !bestBound.second) && currentProblem.getNum() < currentProblem.getNumObjects()) {
+			cout<<"at branch "<<currentProblem.getNum()<<endl;
+			knapsack subproblem1 = currentProblem;
+			knapsack subproblem2 = currentProblem;
+			subproblem1.select(subproblem1.getNum());
+			
+			//calculate our bounds
+			//note that bounds return values, but reset the backpack to the same state as before the calculation
 			sub1Bound = subproblem1.bound();
 			sub2Bound = subproblem2.bound();
+			
+			//if subproblem 2 is not fathomed, add it to our list
+			//note we do not need to check if this is an integral solution because it is the same as the current solution, just an incremented num index
 			if (subproblem2.getCost() < subproblem2.getCostLimit() && ((bestBound.second && sub2Bound.first > bestBound.first) || !bestBound.second)) {
 				subproblems.push_front(subproblem2);
+				subproblems[0].setNum(subproblems[0].getNum()+1);
 			}
 			if (sub1Bound.second) {
 				if (subproblem1.getValue() > bestSolution.getValue()) {
+					cout<<"new champ"<<endl;
+					cin.get();
 					bestSolution = subproblem1;
 					bestBound = bestSolution.bound();
 				}
@@ -86,9 +95,9 @@ void branchAndBound(knapsack k, int timeLimit)
 			else {
 				if (subproblem1.getCost() < subproblem1.getCostLimit() && ((bestBound.second && sub1Bound.first > bestBound.first) || !bestBound.second)) {
 					subproblems.push_front(subproblem1);
+					subproblems[0].setNum(subproblems[0].getNum()+1);
 				}
 			}
-			
 		}
 	}
 	k = bestSolution;

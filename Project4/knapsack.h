@@ -17,8 +17,9 @@ class knapsack
       void unSelect(int);
       bool isSelected(int) const;
       pair<double, bool> bound();
-      void incrementNum();
-      int getNum();
+      void setNum(int);
+      int getNum() const;
+      void setValuePerUnitCost();
 
    private:
       int numObjects;
@@ -29,6 +30,7 @@ class knapsack
       vector<bool> selected;
       int totalValue;
       int totalCost;
+      vector<double> valuePerUnitCost;
 };
 
 knapsack::knapsack(ifstream &fin)
@@ -57,6 +59,7 @@ knapsack::knapsack(ifstream &fin)
    totalValue = 0;
    totalCost = 0;
    num = 0;
+   setValuePerUnitCost();
 }
 
 knapsack::knapsack(const knapsack &k)
@@ -72,6 +75,7 @@ knapsack::knapsack(const knapsack &k)
 
    totalCost = 0;
    totalValue = 0;
+   num = k.getNum();
 
    for (int i = 0; i < n; i++)
    {
@@ -82,6 +86,7 @@ knapsack::knapsack(const knapsack &k)
       else
 	 unSelect(i);
    }
+   setValuePerUnitCost();
 }
 
 int knapsack::getNumObjects() const
@@ -92,6 +97,13 @@ int knapsack::getNumObjects() const
 int knapsack::getCostLimit() const
 {
    return costLimit;
+}
+
+void knapsack::setValuePerUnitCost()
+{
+	for (int i = 0; i < numObjects; i++) {
+		valuePerUnitCost.push_back(value[i] / cost[i]);
+	}
 }
 
 
@@ -213,53 +225,75 @@ bool knapsack::isSelected(int i) const
    return selected[i];
 }
 
-void knapsack::incrementNum()
+//sets the current index to be worked on the knapsack subproblem
+void knapsack::setNum(int i)
 {
-	num++;
+	num = i;
 }
 
-int knapsack::getNum()
+//gets the current index to be worked on the knapsack subproblem
+int knapsack::getNum() const
 {
 	return num;
 }
 
+//returns a pair for the bound whee the double is the bound value and the bool is true if the knapsack is an integral solution
 pair<double, bool> knapsack::bound()
 {
 	pair<double, bool> result;
+	
+	//gets a local value of the first index to look at for a bound
 	int localNum = num;
+	
+	//used as a local variable of the most valuable object not selected
 	int bestIndex;
+	
+	//used if we need to take a fractional value of an object to fill the knapsack when calculating the bound
 	double fractionalValue;
-	vector<double> valuePerUnitCost;
+	
+	//used to determine if a solution is integral
 	bool isIntegral = true;
-	for (int i = 0; i < numObjects; i++) {
-		valuePerUnitCost.push_back(value[i] / cost[i]);
-	}
 	while (totalCost < costLimit) {
+		//if we have incremented through the list, stop checking
+		if (localNum >= numObjects) {
+			break;
+		}
+		
+		//set the best to be the first element not decided on, then check if any are better
 		bestIndex = localNum;
 		for(int i = localNum; i < numObjects; i++) {
 			if (valuePerUnitCost[i] > valuePerUnitCost[bestIndex] && false == selected[i]) {
 				bestIndex = i;
 			}
 		}
+		
+		//select the best valued item
 		select(bestIndex);
+		
+		//if our knapsack is now too full, we must take a fraction
 		if(totalCost > costLimit) {
 			unSelect(bestIndex);
 			int remainingWeight = costLimit - totalCost;
 			fractionalValue = remainingWeight / cost[bestIndex] * value[bestIndex];
+			isIntegral = false;
 			break;
 		}
+		
+		//if the most valuable item was the first item checked, increment our local variable so we start at the next item when looping
 		if (bestIndex == localNum) {
 			localNum++;
 		}
 	}
+	
 	result.first = totalValue + fractionalValue;
+	result.second = isIntegral;
+	
+	//unselect the items that were selected for the bound
 	for (int i = num; i < numObjects; i++) {
-		if(isSelected[i]) {
+		if(isSelected(i)){
 			unSelect(i);
-			isIntegral = false;
 		}
 	}
-	result.second = (0.00 == fractionalValue) || isIntegral;
 	return result;
 }
 
