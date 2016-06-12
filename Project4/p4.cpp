@@ -45,7 +45,13 @@ void branchAndBound(knapsack& k, int timeLimit)
 	deque<knapsack> subproblems;
 	
 	subproblems.push_front(k);
+	
+	//initialize our best solution to an empty knapsack
 	knapsack bestSolution = k;
+	
+	//pair with double representing 
+	pair<double, bool> currentBound, sub1Bound, sub2Bound, bestBound;
+	bestBound = bestSolution.bound();
 
 	// a while loop that expires when time limit is complete by checking difference of 
 	// start time and current time at every loop
@@ -54,24 +60,36 @@ void branchAndBound(knapsack& k, int timeLimit)
 		// Get current time and stop when greater than input time limit
 		time_t newTime;
 		time(&newTime);
+		
 		//if the time threshold has been reached
 		if (difftime(newTime, startTime) > timeLimit)
 		{
 			cout << "Time limit expired" << endl;
 			break;
 		}
+		
+		//get the front problem - note that this means we use a DFS approach
 		knapsack currentProblem = subproblems.front();
 		subproblems.pop_front();
-		pair<double, bool> currentBound, sub1Bound, sub2Bound, bestBound;
-		currentBound = currentProblem.bound();
-		bestBound = bestSolution.bound();
 		
-		//check if the current problem is fathomed
+		
+		
+		//get the current bound and best bound
+		currentBound = currentProblem.bound();
+		
+		/*check if the current problem is fathomed
+		knapsack is not over the weight limit
+		either the best solution is not integral, or if it is, this bound is better than the solution's value
+		and we have not exhausted all of the items in the backpack */
 		if(currentProblem.getCost() < currentProblem.getCostLimit() && ((bestBound.second && currentBound.first > bestSolution.getValue()) || !bestBound.second) && currentProblem.getNum() < currentProblem.getNumObjects()) {
-			cout<<"at branch "<<currentProblem.getNum()<<endl;
+			
+			//subproblem 1 represents taking the current index item
 			knapsack subproblem1 = currentProblem;
-			knapsack subproblem2 = currentProblem;
 			subproblem1.select(subproblem1.getNum());
+			
+			//subprolem 2 represents not taking the current index item
+			knapsack subproblem2 = currentProblem;
+			
 			
 			//calculate our bounds
 			//note that bounds return values, but reset the backpack to the same state as before the calculation

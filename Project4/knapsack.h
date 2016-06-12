@@ -270,7 +270,7 @@ pair<double, bool> knapsack::bound()
 		//select the best valued item
 		select(bestIndex);
 		
-		//if our knapsack is now too full, we must take a fraction
+		//if our knapsack is now too full, we must take a fraction, then brak the loop since we have our best bound
 		if(totalCost > costLimit) {
 			unSelect(bestIndex);
 			int remainingWeight = costLimit - totalCost;
@@ -285,15 +285,18 @@ pair<double, bool> knapsack::bound()
 	}
 	
 	result.first = totalValue + fractionalValue;
-	result.second = isIntegral;
 	
 	//unselect the items that were selected for the bound
+	//if any item was selected (fully), our solution is not integral since more items can be selected into the knapsack
 	for (int i = num+1; i < numObjects; i++) {
 		if(isSelected(i)){
 			unSelect(i);
 			isIntegral = false;
 		}
 	}
+	
+	result.second = isIntegral;
+	
 	return result;
 }
 
