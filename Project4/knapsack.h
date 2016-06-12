@@ -275,7 +275,6 @@ pair<double, bool> knapsack::bound()
 			unSelect(bestIndex);
 			int remainingWeight = costLimit - totalCost;
 			fractionalValue = remainingWeight / cost[bestIndex] * value[bestIndex];
-			isIntegral = false;
 			break;
 		}
 		
@@ -289,9 +288,10 @@ pair<double, bool> knapsack::bound()
 	result.second = isIntegral;
 	
 	//unselect the items that were selected for the bound
-	for (int i = num; i < numObjects; i++) {
+	for (int i = num+1; i < numObjects; i++) {
 		if(isSelected(i)){
 			unSelect(i);
+			isIntegral = false;
 		}
 	}
 	return result;
