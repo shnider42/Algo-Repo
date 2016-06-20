@@ -95,8 +95,10 @@ void pickKnapsack(knapsack& sack, vector<bool> bits) {
 	//cout << sack.getValue() << "\t" << sack.getCost() << endl;
 }
 
+//get best neighbor by flipping two items using a tabu list
 knapsack getBestTwoOptNeighbor(knapsack sack, time_t startTime, int timeLimit, set<knapsack, knapsackCompare> tabuList) {
 	knapsack best = sack;
+	//initialize our best to have a value of 0
 	for (int i = 0; i < best.getNumObjects(); i++) {
 		best.unSelect(i);
 	}
@@ -109,6 +111,8 @@ knapsack getBestTwoOptNeighbor(knapsack sack, time_t startTime, int timeLimit, s
 			bits.push_back(false);
 		}
 	}
+	
+	//first and second represent the items to flip
 	int first = 0;
 	while(first != (sack.getNumObjects() - 2)) {
 		time_t newTime;
@@ -136,6 +140,8 @@ knapsack getBestTwoOptNeighbor(knapsack sack, time_t startTime, int timeLimit, s
 			newBits[first] = !newBits[first];
 			newBits[second] = !newBits[second];
 			pickKnapsack(temp, newBits);
+			
+			//if we have a better value than our neighboring best
 			if(temp.getValue() > best.getValue() && temp.getCost() < temp.getCostLimit() && tabuList.find(temp) == tabuList.end()) {
 				best = temp;
 			}
@@ -145,6 +151,7 @@ knapsack getBestTwoOptNeighbor(knapsack sack, time_t startTime, int timeLimit, s
 	return best;	 
 }
 
+//use tabu search to find knapsack solution
 knapsack tabuSearch(knapsack sack, int timeLimit)
 {
 	time_t startTime;
@@ -152,9 +159,11 @@ knapsack tabuSearch(knapsack sack, int timeLimit)
 	set<knapsack, knapsackCompare> tabuList;
 	knapsack champ = sack;
 	knapsack interim = champ;
+	//use the iterator to track the last item added to the tabu list
 	set<knapsack>::iterator it = tabuList.insert(interim).first;
 	bool done = false;
 	while (!done) {
+		//tabu list of size 10 - extra 1 is for initial solution
 		while(tabuList.size() <= 11) {
 			time_t newTime;
 			time(&newTime);
@@ -170,10 +179,12 @@ knapsack tabuSearch(knapsack sack, int timeLimit)
 		}	
 		it = tabuList.begin();
 		interim = *it;
+		//if we have a new best, update best, clear tabu list, and loop
 		if (interim.getValue() > champ.getValue()) {
 			champ = interim;
 			tabuList.clear();
 		}
+		//else we are done
 		else {
 			done = true;
 		}

@@ -88,6 +88,7 @@ void pickKnapsack(knapsack& sack, vector<bool> bits) {
 	//cout << sack.getValue() << "\t" << sack.getCost() << endl;
 }
 
+//get best neighbor of flipping two items (selecting or unselecting)
 knapsack getBestTwoOptNeighbor(knapsack sack, time_t startTime, int timeLimit) {
 	knapsack best = sack;
 	vector<bool> bits, newBits;
@@ -99,6 +100,8 @@ knapsack getBestTwoOptNeighbor(knapsack sack, time_t startTime, int timeLimit) {
 			bits.push_back(false);
 		}
 	}
+	
+	//first and second represent indicies to flip
 	int first = 0;
 	while(first != (sack.getNumObjects() - 2)) {
 		time_t newTime;
@@ -123,6 +126,8 @@ knapsack getBestTwoOptNeighbor(knapsack sack, time_t startTime, int timeLimit) {
 			
 			knapsack temp = sack;
 			newBits = bits;
+			
+			//flip our two indicies
 			newBits[first] = !newBits[first];
 			newBits[second] = !newBits[second];
 			pickKnapsack(temp, newBits);
@@ -135,6 +140,7 @@ knapsack getBestTwoOptNeighbor(knapsack sack, time_t startTime, int timeLimit) {
 	return best;	 
 }
 
+//find solution using steepest descent
 knapsack steepestDescent(knapsack sack, int timeLimit)
 {
 	time_t startTime;
@@ -153,10 +159,14 @@ knapsack steepestDescent(knapsack sack, int timeLimit)
 			break;
 		}
 		
+		//get the best immediate neighbor
 		knapsack neighbor = getBestTwoOptNeighbor(champ, startTime, timeLimit);
+		
+		//if its better, update and loop
 		if (neighbor.getValue() > champ.getValue()) {
 			champ = neighbor;
 		}
+		//else we are done
 		else {
 			done = true;
 		}

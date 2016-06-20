@@ -198,6 +198,7 @@ vector< pair<int, Graph::vertex_descriptor> > countNeighbors(Graph& g) {
 	return neighbors;
 }
 
+//gets the best neighbor by attemptng to change colors of the graph
 Graph bestNeighbor(Graph g, int numColors, time_t startTime, int timeLimit) {
 	Graph best = g;
 	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(best);
@@ -223,7 +224,7 @@ Graph bestNeighbor(Graph g, int numColors, time_t startTime, int timeLimit) {
 	return best;
 }
 
-
+//uses steepest descent to find best solution
 int steepestDescentColoring(Graph& g, int numColors, int timeLimit)
 {
 	time_t startTime;
@@ -246,10 +247,15 @@ int steepestDescentColoring(Graph& g, int numColors, int timeLimit)
 			break;
 		}
 		
+		//get the best neighbor
 		Graph temp = bestNeighbor(champ, numColors, startTime, timeLimit);
+		
+		//if its better, update and loop
 		if(countConflicts(temp, numColors) < countConflicts(champ, numColors)) {
 			champ = temp;
 		}
+		
+		//else we are done
 		else {
 			done = true;
 		}
